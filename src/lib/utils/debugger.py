@@ -41,6 +41,8 @@ class Debugger(object):
         (255, 0, 0), (0, 0, 255), (255, 0, 0), (0, 0, 255),
         (255, 0, 0), (0, 0, 255), (255, 0, 0), (0, 0, 255),
         (255, 0, 0), (0, 0, 255)]
+    elif dataset == 'in2_car' :
+        self.names = in2_car_class_name
     elif num_classes == 80 or dataset == 'coco':
       self.names = coco_class_name
     elif num_classes == 20 or dataset == 'pascal':
@@ -455,7 +457,7 @@ coco_class_name = [
      'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
      'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]
-
+in2_car_class_name = ['white','black']
 color_list = np.array(
         [
             1.000, 1.000, 1.000,

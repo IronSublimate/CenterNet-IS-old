@@ -17,32 +17,32 @@ import torch.utils.data as data
 class IN2Car(data.Dataset):
     num_classes = 2
     default_resolution = [512, 512]
-    mean = np.array([0.29082103 0.34211339 0.31188419],
+    mean = np.array([0.29082103,0.34211339,0.31188419],
                     dtype=np.float32).reshape((1, 1, 3))
-    std = np.array([0.09155166 0.08957046 0.10699624],
+    std = np.array([0.09155166,0.08957046,0.10699624],
                    dtype=np.float32).reshape((1, 1, 3))
 
     def __init__(self, opt, split):
         super().__init__()
-        self.data_dir = os.path.join(opt.data_dir, '../../in2car')
-        self.img_dir = os.path.join(self.data_dir, 'images')
+        self.data_dir = os.path.join(opt.data_dir, '../../data/in2_car')
+        self.img_dir = os.path.join(self.data_dir, 'JPEGImages')
         if split == 'val':
             self.annot_path = os.path.join(
-                self.data_dir, 'annotations', 'test.json')
+                self.data_dir, 'coco_lables', 'test.json')
         else:
             if opt.task == 'exdet':
                 self.annot_path = os.path.join(
-                    self.data_dir, 'annotations', 'train.json')
+                    self.data_dir, 'coco_lables', 'train.json')
             if split == 'test':
                 self.annot_path = os.path.join(
-                    self.data_dir, 'annotations', 'test.json')
+                    self.data_dir, 'coco_lables', 'test.json')
             else:
                 self.annot_path = os.path.join(
-                    self.data_dir, 'annotations', 'train.json')
+                    self.data_dir, 'coco_lables', 'train.json')
         self.max_objs = 128
         self.class_name = [
             '__background__', 'white', 'black']
-        self._valid_ids = [1, 2]
+        self._valid_ids = [0, 1, 2]
         self.cat_ids = {v: i for i, v in enumerate(self._valid_ids)}
         self.voc_color = [(v // 32 * 64 + 64, (v // 8) % 4 * 64, v % 8 * 32) \
                           for v in range(1, self.num_classes + 1)]
@@ -60,7 +60,7 @@ class IN2Car(data.Dataset):
         self.split = split
         self.opt = opt
 
-        print('==> initializing food {} data.'.format(split))
+        print('==> initializing car {} data.'.format(split))
         self.coco = coco.COCO(self.annot_path)
         self.images = self.coco.getImgIds()
         self.num_samples = len(self.images)
