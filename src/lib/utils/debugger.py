@@ -43,6 +43,8 @@ class Debugger(object):
         (255, 0, 0), (0, 0, 255)]
     elif dataset == 'in2_car' :
         self.names = in2_car_class_name
+    elif dataset == 'voc2007' :
+        self.names = in2_car_class_name
     elif num_classes == 80 or dataset == 'coco':
       self.names = coco_class_name
     elif num_classes == 20 or dataset == 'pascal':
