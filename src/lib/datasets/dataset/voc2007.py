@@ -43,7 +43,7 @@ class VOC2007(data.Dataset):
         self.class_name = ['__background__', "aeroplane", "bicycle", "bird", "boat", "bottle", "bus",
   "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike",
   "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
-        self._valid_ids = np.arange(1, 21, dtype=np.int32)
+        self._valid_ids = np.arange(0, 21, dtype=np.int32)
         self.cat_ids = {v: i for i, v in enumerate(self._valid_ids)}
         self.voc_color = [(v // 32 * 64 + 64, (v // 8) % 4 * 64, v % 8 * 32) \
                           for v in range(1, self.num_classes + 1)]

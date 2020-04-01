@@ -17,6 +17,7 @@ from trains.train_factory import train_factory
 
 
 def main(opt):
+  os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
   torch.manual_seed(opt.seed)
   torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
   Dataset = get_dataset(opt.dataset, opt.task)
@@ -25,7 +26,6 @@ def main(opt):
 
   logger = Logger(opt)
 
-  os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
   opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
   
   print('Creating model...')
