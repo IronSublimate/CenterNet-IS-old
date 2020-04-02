@@ -17,9 +17,9 @@ import torch.utils.data as data
 class VOC2007(data.Dataset):
     num_classes = 20
     default_resolution = [512, 512]
-    mean = np.array([0.44846863,0.42517227,0.39185812],
+    mean = np.array([0.44846863, 0.42517227, 0.39185812],
                     dtype=np.float32).reshape((1, 1, 3))
-    std = np.array([0.2409723,0.2356022,0.2380714],
+    std = np.array([0.2409723, 0.2356022, 0.2380714],
                    dtype=np.float32).reshape((1, 1, 3))
 
     def __init__(self, opt, split):
@@ -41,8 +41,8 @@ class VOC2007(data.Dataset):
                     self.data_dir, 'coco_lables', 'train.json')
         self.max_objs = 128
         self.class_name = ['__background__', "aeroplane", "bicycle", "bird", "boat", "bottle", "bus",
-  "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike",
-  "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
+                           "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike",
+                           "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
         self._valid_ids = np.arange(0, 21, dtype=np.int32)
         self.cat_ids = {v: i for i, v in enumerate(self._valid_ids)}
         self.voc_color = [(v // 32 * 64 + 64, (v // 8) % 4 * 64, v % 8 * 32) \
