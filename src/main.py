@@ -16,7 +16,7 @@ from datasets.dataset_factory import get_dataset
 from trains.train_factory import train_factory
 
 
-def main(opt):
+def main(opt: opts):
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
     torch.manual_seed(opt.seed)
     torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test

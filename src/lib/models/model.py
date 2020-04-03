@@ -22,7 +22,7 @@ _model_factory = {
 }
 
 
-def create_model(arch, heads, head_conv):
+def create_model(arch:str, heads, head_conv)->nn.Module:
     num_layers = int(arch[arch.find('_') + 1:]) if '_' in arch else 0
     arch = arch[:arch.find('_')] if '_' in arch else arch
     get_model = _model_factory[arch]
@@ -30,7 +30,7 @@ def create_model(arch, heads, head_conv):
     return model
 
 
-def load_model(model, model_path, optimizer=None, resume=False,
+def load_model(model:nn.Module, model_path, optimizer=None, resume=False,
                lr=None, lr_step=None):
     start_epoch = 0
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)

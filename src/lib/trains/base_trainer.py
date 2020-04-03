@@ -7,6 +7,8 @@ import torch
 from progress.bar import Bar
 from models.data_parallel import DataParallel
 from utils.utils import AverageMeter
+from typing import List
+from opts import opts
 
 
 class ModelWithLoss(torch.nn.Module):
@@ -23,18 +25,17 @@ class ModelWithLoss(torch.nn.Module):
 
 class BaseTrainer(object):
     def __init__(
-            self, opt, model, optimizer=None):
+            self, opt: opts, model: torch.nn.Module, optimizer=None):
         self.opt = opt
         self.optimizer = optimizer
         self.loss_stats, self.loss = self._get_losses(opt)
         self.model_with_loss = ModelWithLoss(model, self.loss)
 
-    def set_device(self, gpus, chunk_sizes, device):
+    def set_device(self, gpus: List[int], chunk_sizes: int, device: str):
         if len(gpus) > 1:
             self.model_with_loss = DataParallel(
                 self.model_with_loss, device_ids=gpus,
                 chunk_sizes=chunk_sizes).to(device)
-            print(gpus)
         else:
             self.model_with_loss = self.model_with_loss.to(device)
 
@@ -43,7 +44,7 @@ class BaseTrainer(object):
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(device=device, non_blocking=True)
 
-    def run_epoch(self, phase, epoch, data_loader):
+    def run_epoch(self, phase: str, epoch: int, data_loader: torch.utils.data.DataLoader):
         model_with_loss = self.model_with_loss
         if phase == 'train':
             model_with_loss.train()
@@ -114,8 +115,8 @@ class BaseTrainer(object):
     def _get_losses(self, opt):
         raise NotImplementedError
 
-    def val(self, epoch, data_loader):
+    def val(self, epoch, data_loader: torch.utils.data.DataLoader):
         return self.run_epoch('val', epoch, data_loader)
 
-    def train(self, epoch, data_loader):
+    def train(self, epoch, data_loader: torch.utils.data.DataLoader):
         return self.run_epoch('train', epoch, data_loader)
