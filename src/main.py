@@ -18,6 +18,7 @@ from trains.train_factory import train_factory
 
 def main(opt: opts):
     os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
+    print("**Visible CUDA:",torch.cuda.device_count())
     torch.manual_seed(opt.seed)
     torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
     Dataset = get_dataset(opt.dataset, opt.task)
