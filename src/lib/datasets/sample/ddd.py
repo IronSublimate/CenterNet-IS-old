@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 import pycocotools.coco as coco
 import numpy as np
 import torch
@@ -16,7 +16,7 @@ from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
 import pycocotools.coco as coco
 
 
-class DddDataset(data.Dataset):
+class DddDataset(BaseDataset):
     def _coco_box_to_bbox(self, box):
         bbox = np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]],
                         dtype=np.float32)

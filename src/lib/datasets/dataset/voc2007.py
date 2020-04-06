@@ -11,10 +11,10 @@ import numpy as np
 import json
 import os
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 
 
-class VOC2007(data.Dataset):
+class VOC2007(BaseDataset):
     num_classes = 20
     default_resolution = [512, 512]
     mean = np.array([0.44846863, 0.42517227, 0.39185812],

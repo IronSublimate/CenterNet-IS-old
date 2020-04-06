@@ -8,10 +8,10 @@ import torch
 import json
 import os
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 
 
-class PascalVOC(data.Dataset):
+class PascalVOC(BaseDataset):
     num_classes = 20
     default_resolution = [384, 384]
     mean = np.array([0.485, 0.456, 0.406],
