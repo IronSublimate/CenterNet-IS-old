@@ -11,10 +11,10 @@ import cv2
 import os
 import math
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 
 
-class KITTI(data.Dataset):
+class KITTI(BaseDataset):
     num_classes = 3
     default_resolution = [384, 1280]
     mean = np.array([0.485, 0.456, 0.406], np.float32).reshape(1, 1, 3)

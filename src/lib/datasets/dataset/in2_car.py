@@ -11,10 +11,10 @@ import numpy as np
 import json
 import os
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 
 
-class IN2Car(data.Dataset):
+class IN2Car(BaseDataset):
     num_classes = 2
     default_resolution = [512, 512]
     mean = np.array([0.29082103,0.34211339,0.31188419],
