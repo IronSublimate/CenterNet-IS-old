@@ -11,7 +11,7 @@ import torch
 from models.model import create_model, load_model
 from utils.image import get_affine_transform
 from utils.debugger import Debugger
-from typing import Union, Tuple, Sequence, Dict,List
+from typing import Union, Tuple, Sequence, Dict, List, Optional, Iterable
 
 
 class BaseDetector(object):
@@ -35,7 +35,7 @@ class BaseDetector(object):
         self.opt = opt
         self.pause = True
 
-    def pre_process(self, image: np.ndarray, scale: float, meta: list = None) -> (np.ndarray, dict):
+    def pre_process(self, image: np.ndarray, scale: float, meta: Optional[list] = None) -> (torch.Tensor, dict):
         height, width = image.shape[0:2]
         new_height = int(height * scale)
         new_width = int(width * scale)
@@ -65,24 +65,25 @@ class BaseDetector(object):
                 'out_width': inp_width // self.opt.down_ratio}
         return images, meta
 
-    def process(self, images: np.ndarray, return_time=False) \
+    def process(self, images: torch.Tensor, return_time=False) \
             -> Tuple[dict, torch.Tensor, float]:
         raise NotImplementedError
 
-    def post_process(self, dets: torch.Tensor, meta: dict, scale: float = 1) -> dict:
+    def post_process(self, dets: torch.Tensor, meta: dict, scale: float = 1) \
+            -> Dict[int, Iterable]:
         raise NotImplementedError
 
-    def merge_outputs(self, detections):
+    def merge_outputs(self, detections: List[Dict[int, Iterable]]) -> Dict[int, np.ndarray]:
         raise NotImplementedError
 
-    def debug(self, debugger, images, dets, output, scale=1):
+    def debug(self, debugger: Debugger, images: np.ndarray, dets: torch.Tensor, output, scale: float = 1):
         raise NotImplementedError
 
-    def show_results(self, debugger, image, results):
+    def show_results(self, debugger: Debugger, image: np.ndarray, results: Dict[int, np.ndarray]):
         raise NotImplementedError
 
     def run(self, image_or_path_or_tensor: Union[str, np.ndarray, Dict[str, List[torch.Tensor]]],
-            meta: list = None):
+            meta: Optional[list] = None):
         load_time, pre_time, net_time, dec_time, post_time = 0, 0, 0, 0, 0
         merge_time, tot_time = 0, 0
         debugger = Debugger(dataset=self.opt.dataset, ipynb=(self.opt.debug == 3),
@@ -102,6 +103,7 @@ class BaseDetector(object):
         load_time += (loaded_time - start_time)
 
         detections = []
+        post_process_time = 0
         for scale in self.scales:
             scale_start_time = time.time()
             if not pre_processed:
