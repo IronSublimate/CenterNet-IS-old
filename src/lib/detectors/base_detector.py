@@ -11,6 +11,7 @@ import torch
 from models.model import create_model, load_model
 from utils.image import get_affine_transform
 from utils.debugger import Debugger
+from typing import Union, Tuple, Sequence, Dict,List
 
 
 class BaseDetector(object):
@@ -34,7 +35,7 @@ class BaseDetector(object):
         self.opt = opt
         self.pause = True
 
-    def pre_process(self, image, scale, meta=None):
+    def pre_process(self, image: np.ndarray, scale: float, meta: list = None) -> (np.ndarray, dict):
         height, width = image.shape[0:2]
         new_height = int(height * scale)
         new_width = int(width * scale)
@@ -64,10 +65,11 @@ class BaseDetector(object):
                 'out_width': inp_width // self.opt.down_ratio}
         return images, meta
 
-    def process(self, images, return_time=False):
+    def process(self, images: np.ndarray, return_time=False) \
+            -> Tuple[dict, torch.Tensor, float]:
         raise NotImplementedError
 
-    def post_process(self, dets, meta, scale=1):
+    def post_process(self, dets: torch.Tensor, meta: dict, scale: float = 1) -> dict:
         raise NotImplementedError
 
     def merge_outputs(self, detections):
@@ -79,7 +81,8 @@ class BaseDetector(object):
     def show_results(self, debugger, image, results):
         raise NotImplementedError
 
-    def run(self, image_or_path_or_tensor, meta=None):
+    def run(self, image_or_path_or_tensor: Union[str, np.ndarray, Dict[str, List[torch.Tensor]]],
+            meta: list = None):
         load_time, pre_time, net_time, dec_time, post_time = 0, 0, 0, 0, 0
         merge_time, tot_time = 0, 0
         debugger = Debugger(dataset=self.opt.dataset, ipynb=(self.opt.debug == 3),
@@ -88,7 +91,7 @@ class BaseDetector(object):
         pre_processed = False
         if isinstance(image_or_path_or_tensor, np.ndarray):
             image = image_or_path_or_tensor
-        elif type(image_or_path_or_tensor) == type(''):
+        elif isinstance(image_or_path_or_tensor, str):
             image = cv2.imread(image_or_path_or_tensor)
         else:
             image = image_or_path_or_tensor['image'][0].numpy()

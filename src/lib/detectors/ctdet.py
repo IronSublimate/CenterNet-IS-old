@@ -43,7 +43,7 @@ class CtdetDetector(BaseDetector):
         if return_time:
             return output, dets, forward_time
         else:
-            return output, dets
+            return output, dets, 0.0
 
     def post_process(self, dets, meta, scale=1):
         dets = dets.detach().cpu().numpy()

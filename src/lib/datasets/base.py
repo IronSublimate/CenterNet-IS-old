@@ -39,3 +39,6 @@ class BaseDataset(data.dataset):
         self.coco = coco.COCO()
         self.images = []
         self.num_samples = 0
+
+    def run_eval(self, results: dict, save_dir: str):
+        raise NotImplementedError
