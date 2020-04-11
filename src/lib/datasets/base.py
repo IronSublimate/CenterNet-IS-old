@@ -8,7 +8,7 @@ import numpy as np
 
 
 # All classes in dataset folder and sample folder inherit from this
-class BaseDataset(data.dataset):
+class BaseDataset(data.Dataset):
     num_classes = 0
     default_resolution = [512, 512]
     mean = np.array([0, 0, 0],
