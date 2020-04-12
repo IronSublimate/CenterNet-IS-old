@@ -23,7 +23,7 @@ class BaseDataset(data.Dataset):
         self.annot_path = ""
         self.max_objs = 0
         self.class_name = []
-        self._valid_ids = np.array()
+        self._valid_ids = np.array([])
         self.cat_ids = {}
         self._data_rng = 0
         self._eig_val = np.array([0.2141788, 0.01817699, 0.00341571], dtype=np.float32)
