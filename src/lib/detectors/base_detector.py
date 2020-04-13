@@ -11,6 +11,7 @@ import torch
 from models.model import create_model, load_model
 from utils.image import get_affine_transform
 from utils.debugger import Debugger
+from typing import Union, Tuple, Sequence, Dict, List, Optional, Iterable
 
 
 class BaseDetector(object):
@@ -34,7 +35,7 @@ class BaseDetector(object):
         self.opt = opt
         self.pause = True
 
-    def pre_process(self, image, scale, meta=None):
+    def pre_process(self, image: np.ndarray, scale: float, meta: Optional[list] = None) -> (torch.Tensor, dict):
         height, width = image.shape[0:2]
         new_height = int(height * scale)
         new_width = int(width * scale)
@@ -64,22 +65,25 @@ class BaseDetector(object):
                 'out_width': inp_width // self.opt.down_ratio}
         return images, meta
 
-    def process(self, images, return_time=False):
+    def process(self, images: torch.Tensor, return_time=False) \
+            -> Tuple[dict, torch.Tensor, float]:
         raise NotImplementedError
 
-    def post_process(self, dets, meta, scale=1):
+    def post_process(self, dets: torch.Tensor, meta: dict, scale: float = 1) \
+            -> Dict[int, Iterable]:
         raise NotImplementedError
 
-    def merge_outputs(self, detections):
+    def merge_outputs(self, detections: List[Dict[int, Iterable]]) -> Dict[int, np.ndarray]:
         raise NotImplementedError
 
-    def debug(self, debugger, images, dets, output, scale=1):
+    def debug(self, debugger: Debugger, images: np.ndarray, dets: torch.Tensor, output, scale: float = 1):
         raise NotImplementedError
 
-    def show_results(self, debugger, image, results):
+    def show_results(self, debugger: Debugger, image: np.ndarray, results: Dict[int, np.ndarray]):
         raise NotImplementedError
 
-    def run(self, image_or_path_or_tensor, meta=None):
+    def run(self, image_or_path_or_tensor: Union[str, np.ndarray, Dict[str, List[torch.Tensor]]],
+            meta: Optional[list] = None):
         load_time, pre_time, net_time, dec_time, post_time = 0, 0, 0, 0, 0
         merge_time, tot_time = 0, 0
         debugger = Debugger(dataset=self.opt.dataset, ipynb=(self.opt.debug == 3),
@@ -88,7 +92,7 @@ class BaseDetector(object):
         pre_processed = False
         if isinstance(image_or_path_or_tensor, np.ndarray):
             image = image_or_path_or_tensor
-        elif type(image_or_path_or_tensor) == type(''):
+        elif isinstance(image_or_path_or_tensor, str):
             image = cv2.imread(image_or_path_or_tensor)
         else:
             image = image_or_path_or_tensor['image'][0].numpy()
@@ -99,6 +103,7 @@ class BaseDetector(object):
         load_time += (loaded_time - start_time)
 
         detections = []
+        post_process_time = 0
         for scale in self.scales:
             scale_start_time = time.time()
             if not pre_processed:
