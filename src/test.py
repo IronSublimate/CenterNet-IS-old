@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+
 import _init_paths
 
 import os
@@ -78,7 +80,11 @@ def prefetch_test(opt):
             avg_time_stats[t].update(ret[t])
             Bar.suffix = Bar.suffix + '|{} {tm.val:.3f}s ({tm.avg:.3f}s) '.format(
                 t, tm=avg_time_stats[t])
-        bar.next()
+        if opt.print_iter > 0:
+            if ind % opt.print_iter == 0:
+                print(Bar.suffix)
+        else:
+            bar.next()
     bar.finish()
     dataset.run_eval(results, opt.save_dir)
 
@@ -118,7 +124,12 @@ def test(opt):
         for t in avg_time_stats:
             avg_time_stats[t].update(ret[t])
             Bar.suffix = Bar.suffix + '|{} {:.3f} '.format(t, avg_time_stats[t].avg)
-        bar.next()
+        if opt.print_iter > 0:
+            if ind % opt.print_iter == 0:
+                print(Bar.suffix)
+        else:
+            bar.next()
+        # print(bar.suffix)
     bar.finish()
     dataset.run_eval(results, opt.save_dir)
 
