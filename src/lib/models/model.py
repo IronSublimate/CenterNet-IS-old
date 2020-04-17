@@ -13,6 +13,8 @@ from .networks.pose_dla_dcn import get_pose_net as get_dla_dcn
 from .networks.resnet_dcn import get_pose_net as get_pose_net_dcn
 from .networks.large_hourglass import get_large_hourglass_net
 
+from typing import Dict
+
 _model_factory = {
     'res': get_pose_net,  # default Resnet with deconv
     'dlav0': get_dlav0,  # default DLAup
@@ -22,7 +24,7 @@ _model_factory = {
 }
 
 
-def create_model(arch:str, heads, head_conv)->nn.Module:
+def create_model(arch: str, heads: Dict[str, int], head_conv: int) -> nn.Module:
     num_layers = int(arch[arch.find('_') + 1:]) if '_' in arch else 0
     arch = arch[:arch.find('_')] if '_' in arch else arch
     get_model = _model_factory[arch]
@@ -30,7 +32,7 @@ def create_model(arch:str, heads, head_conv)->nn.Module:
     return model
 
 
-def load_model(model:nn.Module, model_path, optimizer=None, resume=False,
+def load_model(model: nn.Module, model_path, optimizer=None, resume=False,
                lr=None, lr_step=None):
     start_epoch = 0
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)

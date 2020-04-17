@@ -7,17 +7,18 @@ import torch
 from progress.bar import Bar
 from models.data_parallel import DataParallel
 from utils.utils import AverageMeter
-from typing import List
+from typing import List, Optional, Dict
+from argparse import Namespace
 from opts import opts
 
 
 class ModelWithLoss(torch.nn.Module):
-    def __init__(self, model, loss):
+    def __init__(self, model: torch.nn.Module, loss: torch.nn.Module):
         super(ModelWithLoss, self).__init__()
         self.model = model
         self.loss = loss
 
-    def forward(self, batch):
+    def forward(self, batch: dict) -> (Dict[str, torch.Tensor], torch.Tensor, Dict[str, torch.Tensor]):
         outputs = self.model(batch['input'])
         loss, loss_stats = self.loss(outputs, batch)
         return outputs[-1], loss, loss_stats
@@ -25,7 +26,7 @@ class ModelWithLoss(torch.nn.Module):
 
 class BaseTrainer(object):
     def __init__(
-            self, opt: opts, model: torch.nn.Module, optimizer=None):
+            self, opt: Namespace, model: torch.nn.Module, optimizer: Optional[torch.optim.Adam] = None):
         self.opt = opt
         self.optimizer = optimizer
         self.loss_stats, self.loss = self._get_losses(opt)
@@ -106,13 +107,13 @@ class BaseTrainer(object):
         ret['time'] = bar.elapsed_td.total_seconds() / 60.
         return ret, results
 
-    def debug(self, batch, output, iter_id):
+    def debug(self, batch: dict, output: List[Dict[str, torch.Tensor]], iter_id: int):
         raise NotImplementedError
 
-    def save_result(self, output, batch, results):
+    def save_result(self, output: List[Dict[str, torch.Tensor]], batch: dict, results: dict):
         raise NotImplementedError
 
-    def _get_losses(self, opt):
+    def _get_losses(self, opt: Namespace) -> (List[str], torch.nn.Module):
         raise NotImplementedError
 
     def val(self, epoch, data_loader: torch.utils.data.DataLoader):

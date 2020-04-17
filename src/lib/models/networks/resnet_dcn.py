@@ -17,6 +17,7 @@ import torch
 import torch.nn as nn
 from .DCNv2.dcn_v2 import DCN
 import torch.utils.model_zoo as model_zoo
+from typing import Dict, Type, Tuple, List
 
 BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
@@ -133,7 +134,11 @@ def fill_fc_weights(layers):
 
 class PoseResNet(nn.Module):
 
-    def __init__(self, block, layers, heads, head_conv):
+    def __init__(self,
+                 block: Type[BasicBlock],
+                 layers: List[int, int, int, int],
+                 heads: Dict[str, int],
+                 head_conv: int):
         self.inplanes = 64
         self.heads = heads
         self.deconv_with_bias = False
@@ -249,7 +254,7 @@ class PoseResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> List[Dict[str, torch.Tensor]]:
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -286,7 +291,7 @@ resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                152: (Bottleneck, [3, 8, 36, 3])}
 
 
-def get_pose_net(num_layers, heads, head_conv=256):
+def get_pose_net(num_layers: int, heads: Dict[str, int], head_conv: int = 256):
     block_class, layers = resnet_spec[num_layers]
 
     model = PoseResNet(block_class, layers, heads, head_conv=head_conv)
