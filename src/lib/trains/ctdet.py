@@ -26,7 +26,7 @@ class CtdetLoss(torch.nn.Module):
                 RegWeightedL1Loss() if opt.cat_spec_wh else self.crit_reg
         self.opt = opt
 
-    def forward(self, outputs, batch):
+    def forward(self, outputs, batch: dict):
         opt = self.opt
         hm_loss, wh_loss, off_loss = 0, 0, 0
         for s in range(opt.num_stacks):
