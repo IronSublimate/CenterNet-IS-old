@@ -110,7 +110,7 @@ class BaseTrainer(object):
     def debug(self, batch: dict, output: List[Dict[str, torch.Tensor]], iter_id: int):
         raise NotImplementedError
 
-    def save_result(self, output: List[Dict[str, torch.Tensor]], batch: dict, results: dict):
+    def save_result(self, output: Dict[str, torch.Tensor], batch: dict, results: dict):
         raise NotImplementedError
 
     def _get_losses(self, opt: Namespace) -> (List[str], torch.nn.Module):

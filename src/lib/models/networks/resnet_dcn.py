@@ -136,7 +136,7 @@ class PoseResNet(nn.Module):
 
     def __init__(self,
                  block: Type[BasicBlock],
-                 layers: List[int, int, int, int],
+                 layers: List[int],
                  heads: Dict[str, int],
                  head_conv: int):
         self.inplanes = 64
