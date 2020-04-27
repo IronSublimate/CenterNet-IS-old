@@ -14,6 +14,7 @@ from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
 from utils.image import draw_dense_reg
 import math
 from datasets.base import BaseDataset
+from typing import Dict, List, Any
 
 
 class CTDetDataset(BaseDataset):
@@ -28,7 +29,7 @@ class CTDetDataset(BaseDataset):
             i *= 2
         return border // i
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Dict[str, Any]:
         img_id = self.images[index]
         file_name = self.coco.loadImgs(ids=[img_id])[0]['file_name']
         img_path = os.path.join(self.img_dir, file_name)
