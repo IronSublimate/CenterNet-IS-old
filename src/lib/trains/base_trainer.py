@@ -90,7 +90,7 @@ class BaseTrainer(object):
                 Bar.suffix = Bar.suffix + '|Data {dt.val:.3f}s({dt.avg:.3f}s) ' \
                                           '|Net {bt.avg:.3f}s'.format(dt=data_time, bt=batch_time)
             if opt.print_iter > 0:
-                if iter_id % opt.print_iter == 0:
+                if iter_id % opt.print_iter == 0 or phase == 'val':
                     print('{}/{}| {}'.format(opt.task, opt.exp_id, Bar.suffix))
             else:
                 bar.next()
