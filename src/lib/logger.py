@@ -7,7 +7,6 @@ import os
 import time
 import sys
 import torch
-from opts import opts
 
 USE_TENSORBOARD = True
 try:
@@ -19,7 +18,7 @@ except:
 
 
 class Logger(object):
-    def __init__(self, opt:opts):
+    def __init__(self, opt):
         """Create a summary writer logging to log_dir."""
         if not os.path.exists(opt.save_dir):
             os.makedirs(opt.save_dir)

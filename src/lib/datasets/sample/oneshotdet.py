@@ -8,6 +8,8 @@ import torch
 import json
 import cv2
 import os
+from random import randint
+
 from utils.image import flip, color_aug
 from utils.image import get_affine_transform, affine_transform
 from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
@@ -15,7 +17,7 @@ from utils.image import draw_dense_reg
 import math
 
 
-class CTDetDataset(data.Dataset):
+class OneShotDetDataset(data.Dataset):
     def _coco_box_to_bbox(self, box):
         bbox = np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]],
                         dtype=np.float32)
@@ -31,17 +33,31 @@ class CTDetDataset(data.Dataset):
         img_id = self.images[index]
         file_name = self.coco.loadImgs(ids=[img_id])[0]['file_name']
         img_path = os.path.join(self.img_dir, file_name)
-        ann_ids = self.coco.getAnnIds(imgIds=[img_id])
+
+        ref_ann = self.ref_anns[randint(0, len(self.ref_anns) - 1)]
+        ref_file_name = self.coco.loadImgs(ids=[ref_ann["image_id"]])[0]['file_name']
+        ref_img_path = os.path.join(self.img_dir, ref_file_name)
+        category = ref_ann['category_id']  # int
+
+        ann_ids = self.coco.getAnnIds(imgIds=[img_id], catIds=[category])
         anns = self.coco.loadAnns(ids=ann_ids)
         num_objs = min(len(anns), self.max_objs)
 
         img = cv2.imread(img_path)
+        ref_img = cv2.imread(ref_img_path)
+
+        ref_img = ref_img[math.ceil(ref_ann['bbox'][1]):math.floor(ref_ann['bbox'][1] + ref_ann['bbox'][3]),
+                  math.ceil(ref_ann['bbox'][0]):math.floor(ref_ann['bbox'][0] + ref_ann['bbox'][2]), :]
+        # cv2.imwrite("refExample.png",ref_img) #have checked, correct
 
         height, width = img.shape[0], img.shape[1]
+        ref_height, ref_width = ref_img.shape[0], ref_img.shape[1]
         c = np.array([img.shape[1] / 2., img.shape[0] / 2.], dtype=np.float32)
         if self.opt.keep_res:
             input_h = (height | self.opt.pad) + 1
             input_w = (width | self.opt.pad) + 1
+            ref_input_h = (ref_height | self.opt.pad) + 1
+            ref_input_w = (ref_width | self.opt.pad) + 1
             s = np.array([input_w, input_h], dtype=np.float32)
         else:
             s = max(img.shape[0], img.shape[1]) * 1.0
@@ -78,19 +94,21 @@ class CTDetDataset(data.Dataset):
         inp = (inp - self.mean) / self.std
         inp = inp.transpose(2, 0, 1)
 
+        if np.random.random() < self.opt.flip:
+            ref_img = img[:, ::-1, :]
+        ref_inp = cv2.resize(ref_img, (inp.shape[1], inp.shape[0]))
+
         output_h = input_h // self.opt.down_ratio
         output_w = input_w // self.opt.down_ratio
         num_classes = self.num_classes
         trans_output = get_affine_transform(c, s, 0, [output_w, output_h])
 
-        hm = np.zeros((num_classes, output_h, output_w), dtype=np.float32)
+        hm = np.zeros((1, output_h, output_w), dtype=np.float32)
         wh = np.zeros((self.max_objs, 2), dtype=np.float32)
         dense_wh = np.zeros((2, output_h, output_w), dtype=np.float32)
         reg = np.zeros((self.max_objs, 2), dtype=np.float32)
         ind = np.zeros((self.max_objs), dtype=np.int64)
         reg_mask = np.zeros((self.max_objs), dtype=np.uint8)
-        cat_spec_wh = np.zeros((self.max_objs, num_classes * 2), dtype=np.float32)
-        cat_spec_mask = np.zeros((self.max_objs, num_classes * 2), dtype=np.uint8)
 
         draw_gaussian = draw_msra_gaussian if self.opt.mse_loss else \
             draw_umich_gaussian
@@ -99,7 +117,6 @@ class CTDetDataset(data.Dataset):
         for k in range(num_objs):
             ann = anns[k]
             bbox = self._coco_box_to_bbox(ann['bbox'])
-            cls_id = int(self.cat_ids[ann['category_id']])
             if flipped:
                 bbox[[0, 2]] = width - bbox[[2, 0]] - 1
             bbox[:2] = affine_transform(bbox[:2], trans_output)
@@ -114,26 +131,21 @@ class CTDetDataset(data.Dataset):
                 ct = np.array(
                     [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
                 ct_int = ct.astype(np.int32)
-                draw_gaussian(hm[cls_id], ct_int, radius)
+                draw_gaussian(hm[0], ct_int, radius)
                 wh[k] = 1. * w, 1. * h
                 ind[k] = ct_int[1] * output_w + ct_int[0]
                 reg[k] = ct - ct_int
                 reg_mask[k] = 1
-                cat_spec_wh[k, cls_id * 2: cls_id * 2 + 2] = wh[k]
-                cat_spec_mask[k, cls_id * 2: cls_id * 2 + 2] = 1
                 if self.opt.dense_wh:
                     draw_dense_reg(dense_wh, hm.max(axis=0), ct_int, wh[k], radius)
                 gt_det.append([ct[0] - w / 2, ct[1] - h / 2,
-                               ct[0] + w / 2, ct[1] + h / 2, 1, cls_id])
+                               ct[0] + w / 2, ct[1] + h / 2, 1, 0])
 
-        ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
+        ret = {'input': inp, 'ref_input': ref_inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
         if self.opt.dense_wh:
             hm_a = hm.max(axis=0, keepdims=True)
             dense_wh_mask = np.concatenate([hm_a, hm_a], axis=0)
             ret.update({'dense_wh': dense_wh, 'dense_wh_mask': dense_wh_mask})
-            del ret['wh']
-        elif self.opt.cat_spec_wh:
-            ret.update({'cat_spec_wh': cat_spec_wh, 'cat_spec_mask': cat_spec_mask})
             del ret['wh']
         if self.opt.reg_offset:
             ret.update({'reg': reg})

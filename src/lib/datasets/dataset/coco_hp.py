@@ -8,10 +8,10 @@ import numpy as np
 import json
 import os
 
-from datasets.base import BaseDataset
+import torch.utils.data as data
 
 
-class COCOHP(BaseDataset):
+class COCOHP(data.Dataset):
     num_classes = 1
     num_joints = 17
     default_resolution = [512, 512]

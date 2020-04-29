@@ -12,7 +12,7 @@ class opts(object):
         self.parser = argparse.ArgumentParser()
         # basic experiment setting
         self.parser.add_argument('task', default='ctdet',
-                                 help='ctdet | ddd | multi_pose | exdet')
+                                 help='ctdet | ddd | multi_pose | exdet | oneshotdet')
         self.parser.add_argument('--dataset', default='coco',
                                  help='coco | kitti | coco_hp | pascal')
         self.parser.add_argument('--exp_id', default='default')
@@ -35,7 +35,7 @@ class opts(object):
                                       'in the exp dir if load_model is empty.')
 
         # system
-        self.parser.add_argument('--gpus', default='0',
+        self.parser.add_argument('--gpus', default='3,4',
                                  help='-1 for CPU, use comma for multiple gpus')
         self.parser.add_argument('--num_workers', type=int, default=4,
                                  help='dataloader threads. 0 for single-thread.')
@@ -62,7 +62,7 @@ class opts(object):
         self.parser.add_argument('--arch', default='dla_34',
                                  help='model architecture. Currently tested'
                                       'res_18 | res_101 | resdcn_18 | resdcn_101 |'
-                                      'dlav0_34 | dla_34 | hourglass')
+                                      'dlav0_34 | dla_34 | hourglass | oneshothourglass')
         self.parser.add_argument('--head_conv', type=int, default=-1,
                                  help='conv layer channels for output head'
                                       '0 for no conv layer'
@@ -329,6 +329,12 @@ class opts(object):
                 opt.heads.update({'hm_hp': 17})
             if opt.reg_hp_offset:
                 opt.heads.update({'hp_offset': 2})
+        elif opt.task == 'oneshotdet':
+            assert opt.dataset in ['pascal', 'coco']
+            opt.heads = {'hm': 1,
+                         'wh': 2}
+            if opt.reg_offset:
+                opt.heads.update({'reg': 2})
         else:
             assert 0, 'task not defined!'
         print('heads', opt.heads)

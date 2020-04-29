@@ -22,9 +22,9 @@ from utils.debugger import Debugger
 from .base_detector import BaseDetector
 
 
-class CtdetDetector(BaseDetector):
+class OneShotDetector(BaseDetector):
     def __init__(self, opt):
-        super(CtdetDetector, self).__init__(opt)
+        super(OneShotDetector, self).__init__(opt)
 
     def process(self, images, return_time=False):
         with torch.no_grad():

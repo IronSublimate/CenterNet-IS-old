@@ -7,11 +7,12 @@ from pycocotools.cocoeval import COCOeval
 import numpy as np
 import json
 import os
+import pickle
 
-from datasets.base import BaseDataset
+import torch.utils.data as data
 
 
-class COCO(BaseDataset):
+class COCO(data.Dataset):
     num_classes = 80
     default_resolution = [512, 512]
     mean = np.array([0.40789654, 0.44719302, 0.47026115],
@@ -23,6 +24,7 @@ class COCO(BaseDataset):
         super(COCO, self).__init__()
         self.data_dir = os.path.join(opt.data_dir, 'coco')
         self.img_dir = os.path.join(self.data_dir, 'images', '{}2017'.format(split))
+
         if split == 'test':
             self.annot_path = os.path.join(
                 self.data_dir, 'annotations',
@@ -83,6 +85,36 @@ class COCO(BaseDataset):
         self.num_samples = len(self.images)
 
         print('Loaded {} {} samples'.format(split, self.num_samples))
+
+        self.ref_anns = []
+
+        ref_list_path = os.path.join(self.data_dir, 'ref_img_for_one_shot_detection',
+                                     'coco_{}2017_e2e_mask_rcnn_R_101_FPN_1x_caffe2.pkl'.format(split))
+        with open(ref_list_path, "rb") as f:
+            self.ref_list = pickle.load(f)
+
+        for index in self.images:
+            self._load_ref_annotation(index)
+
+    def _load_ref_annotation(self, index):
+        """
+        Loads COCO bounding-box instance annotations. Crowd instances are
+        handled by marking their overlaps (with all categories) to -1. This
+        overlap value means that crowd "instances" are excluded from training.
+        """
+        im_ann = self.coco.loadImgs(index)[0]
+
+        # Get the useful information
+        reference = self.ref_list[index]
+        save_seq = reference.keys()
+
+        annIds = self.coco.getAnnIds(imgIds=index, iscrowd=None)
+        objs = self.coco.loadAnns(annIds)
+        # Sanitize bboxes -- some are invalid
+        valid_objs = []
+        for i, obj in enumerate(objs):
+            if i in save_seq:
+                self.ref_anns.append(obj)
 
     def _to_float(self, x):
         return float("{:.2f}".format(x))

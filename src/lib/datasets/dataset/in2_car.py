@@ -17,9 +17,9 @@ from datasets.base import BaseDataset
 class IN2Car(BaseDataset):
     num_classes = 2
     default_resolution = [512, 512]
-    mean = np.array([0.29082103,0.34211339,0.31188419],
+    mean = np.array([0.29082103, 0.34211339, 0.31188419],
                     dtype=np.float32).reshape((1, 1, 3))
-    std = np.array([0.09155166,0.08957046,0.10699624],
+    std = np.array([0.09155166, 0.08957046, 0.10699624],
                    dtype=np.float32).reshape((1, 1, 3))
 
     def __init__(self, opt, split):
