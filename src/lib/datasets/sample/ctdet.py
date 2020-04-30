@@ -13,9 +13,11 @@ from utils.image import get_affine_transform, affine_transform
 from utils.image import gaussian_radius, draw_umich_gaussian, draw_msra_gaussian
 from utils.image import draw_dense_reg
 import math
+from datasets.base import BaseDataset
+from typing import Dict, List, Any
 
 
-class CTDetDataset(data.Dataset):
+class CTDetDataset(BaseDataset):
     def _coco_box_to_bbox(self, box):
         bbox = np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]],
                         dtype=np.float32)
@@ -27,7 +29,7 @@ class CTDetDataset(data.Dataset):
             i *= 2
         return border // i
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Dict[str, Any]:
         img_id = self.images[index]
         file_name = self.coco.loadImgs(ids=[img_id])[0]['file_name']
         img_path = os.path.join(self.img_dir, file_name)

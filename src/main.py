@@ -14,9 +14,12 @@ from models.data_parallel import DataParallel
 from logger import Logger
 from datasets.dataset_factory import get_dataset
 from trains.train_factory import train_factory
+from argparse import Namespace
 
 
-def main(opt):
+def main(opt: Namespace):
+    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
+    print("**Visible CUDA:", torch.cuda.device_count())
     torch.manual_seed(opt.seed)
     torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
     Dataset = get_dataset(opt.dataset, opt.task)
@@ -25,7 +28,6 @@ def main(opt):
 
     logger = Logger(opt)
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
     opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
 
     print('Creating model...')

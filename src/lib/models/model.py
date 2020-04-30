@@ -9,22 +9,22 @@ import os
 
 from .networks.msra_resnet import get_pose_net
 from .networks.dlav0 import get_pose_net as get_dlav0
-# from .networks.pose_dla_dcn import get_pose_net as get_dla_dcn
-# from .networks.resnet_dcn import get_pose_net as get_pose_net_dcn
+from .networks.pose_dla_dcn import get_pose_net as get_dla_dcn
+from .networks.resnet_dcn import get_pose_net as get_pose_net_dcn
 from .networks.large_hourglass import get_large_hourglass_net
 from .networks.oneshot_hourglass import get_oneshot_hourglass_net
 
 _model_factory = {
     'res': get_pose_net,  # default Resnet with deconv
     'dlav0': get_dlav0,  # default DLAup
-    # 'dla': get_dla_dcn,
-    # 'resdcn': get_pose_net_dcn,
+    'dla': get_dla_dcn,
+    'resdcn': get_pose_net_dcn,
     'hourglass': get_large_hourglass_net,
     'oneshothourglass': get_oneshot_hourglass_net
 }
 
 
-def create_model(arch, heads, head_conv):
+def create_model(arch: str, heads: Dict[str, int], head_conv: int) -> nn.Module:
     num_layers = int(arch[arch.find('_') + 1:]) if '_' in arch else 0
     arch = arch[:arch.find('_')] if '_' in arch else arch
     get_model = _model_factory[arch]
@@ -32,7 +32,7 @@ def create_model(arch, heads, head_conv):
     return model
 
 
-def load_model(model, model_path, optimizer=None, resume=False,
+def load_model(model: nn.Module, model_path, optimizer=None, resume=False,
                lr=None, lr_step=None):
     start_epoch = 0
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)

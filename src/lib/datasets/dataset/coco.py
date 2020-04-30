@@ -9,10 +9,10 @@ import json
 import os
 import pickle
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 
 
-class COCO(data.Dataset):
+class COCO(BaseDataset):
     num_classes = 80
     default_resolution = [512, 512]
     mean = np.array([0.40789654, 0.44719302, 0.47026115],

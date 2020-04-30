@@ -12,12 +12,16 @@ from .dataset.coco import COCO
 from .dataset.pascal import PascalVOC
 from .dataset.kitti import KITTI
 from .dataset.coco_hp import COCOHP
+from .dataset.in2_car import IN2Car
+from .dataset.voc2007 import VOC2007
 
 dataset_factory = {
     'coco': COCO,
     'pascal': PascalVOC,
     'kitti': KITTI,
-    'coco_hp': COCOHP
+    'coco_hp': COCOHP,
+    'in2_car': IN2Car,
+    'voc2007': VOC2007,
 }
 
 _sample_factory = {

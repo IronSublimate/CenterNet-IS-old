@@ -7,15 +7,18 @@ import torch
 from progress.bar import Bar
 from models.data_parallel import DataParallel
 from utils.utils import AverageMeter
+from typing import List, Optional, Dict
+from argparse import Namespace
+from opts import opts
 
 
 class ModelWithLoss(torch.nn.Module):
-    def __init__(self, model, loss):
+    def __init__(self, model: torch.nn.Module, loss: torch.nn.Module):
         super(ModelWithLoss, self).__init__()
         self.model = model
         self.loss = loss
 
-    def forward(self, batch):
+    def forward(self, batch: dict) -> (Dict[str, torch.Tensor], torch.Tensor, Dict[str, torch.Tensor]):
         outputs = self.model(batch['input'])
         loss, loss_stats = self.loss(outputs, batch)
         return outputs[-1], loss, loss_stats
@@ -23,13 +26,13 @@ class ModelWithLoss(torch.nn.Module):
 
 class BaseTrainer(object):
     def __init__(
-            self, opt, model, optimizer=None):
+            self, opt: Namespace, model: torch.nn.Module, optimizer: Optional[torch.optim.Adam] = None):
         self.opt = opt
         self.optimizer = optimizer
         self.loss_stats, self.loss = self._get_losses(opt)
         self.model_with_loss = ModelWithLoss(model, self.loss)
 
-    def set_device(self, gpus, chunk_sizes, device):
+    def set_device(self, gpus: List[int], chunk_sizes: int, device: str):
         if len(gpus) > 1:
             self.model_with_loss = DataParallel(
                 self.model_with_loss, device_ids=gpus,
@@ -42,7 +45,7 @@ class BaseTrainer(object):
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(device=device, non_blocking=True)
 
-    def run_epoch(self, phase, epoch, data_loader):
+    def run_epoch(self, phase: str, epoch: int, data_loader: torch.utils.data.DataLoader):
         model_with_loss = self.model_with_loss
         if phase == 'train':
             model_with_loss.train()
@@ -87,7 +90,7 @@ class BaseTrainer(object):
                 Bar.suffix = Bar.suffix + '|Data {dt.val:.3f}s({dt.avg:.3f}s) ' \
                                           '|Net {bt.avg:.3f}s'.format(dt=data_time, bt=batch_time)
             if opt.print_iter > 0:
-                if iter_id % opt.print_iter == 0:
+                if iter_id % opt.print_iter == 0 or phase == 'val':
                     print('{}/{}| {}'.format(opt.task, opt.exp_id, Bar.suffix))
             else:
                 bar.next()
@@ -104,17 +107,17 @@ class BaseTrainer(object):
         ret['time'] = bar.elapsed_td.total_seconds() / 60.
         return ret, results
 
-    def debug(self, batch, output, iter_id):
+    def debug(self, batch: dict, output: List[Dict[str, torch.Tensor]], iter_id: int):
         raise NotImplementedError
 
-    def save_result(self, output, batch, results):
+    def save_result(self, output: Dict[str, torch.Tensor], batch: dict, results: dict):
         raise NotImplementedError
 
-    def _get_losses(self, opt):
+    def _get_losses(self, opt: Namespace) -> (List[str], torch.nn.Module):
         raise NotImplementedError
 
-    def val(self, epoch, data_loader):
+    def val(self, epoch, data_loader: torch.utils.data.DataLoader):
         return self.run_epoch('val', epoch, data_loader)
 
-    def train(self, epoch, data_loader):
+    def train(self, epoch, data_loader: torch.utils.data.DataLoader):
         return self.run_epoch('train', epoch, data_loader)

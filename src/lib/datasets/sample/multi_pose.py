@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import torch.utils.data as data
+from datasets.base import BaseDataset
 import numpy as np
 import torch
 import json
@@ -15,7 +15,7 @@ from utils.image import draw_dense_reg
 import math
 
 
-class MultiPoseDataset(data.Dataset):
+class MultiPoseDataset(BaseDataset):
     def _coco_box_to_bbox(self, box):
         bbox = np.array([box[0], box[1], box[0] + box[2], box[1] + box[3]],
                         dtype=np.float32)

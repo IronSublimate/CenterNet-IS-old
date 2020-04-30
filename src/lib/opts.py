@@ -35,7 +35,7 @@ class opts(object):
                                       'in the exp dir if load_model is empty.')
 
         # system
-        self.parser.add_argument('--gpus', default='3,4',
+        self.parser.add_argument('--gpus', default='0',
                                  help='-1 for CPU, use comma for multiple gpus')
         self.parser.add_argument('--num_workers', type=int, default=4,
                                  help='dataloader threads. 0 for single-thread.')
