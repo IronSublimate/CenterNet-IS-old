@@ -13,6 +13,7 @@ from .networks.pose_dla_dcn import get_pose_net as get_dla_dcn
 from .networks.resnet_dcn import get_pose_net as get_pose_net_dcn
 from .networks.large_hourglass import get_large_hourglass_net
 from .networks.oneshot_hourglass import get_oneshot_hourglass_net
+from typing import Dict
 
 _model_factory = {
     'res': get_pose_net,  # default Resnet with deconv
